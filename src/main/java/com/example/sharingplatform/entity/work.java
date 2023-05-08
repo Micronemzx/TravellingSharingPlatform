@@ -12,7 +12,7 @@ public class work {
     private long workID;
     private String title;
     private String content;
-    private String[] picture;
+    //private String[] picture;
     private String userName;
     private long userID;
     private Date createTime;
@@ -20,7 +20,7 @@ public class work {
     private long likeNumber;
     private long commentNumber;
     private int authority;
-
+    private long hotPoint;
     public long getWorkID() {
         return workID;
     }
@@ -99,5 +99,13 @@ public class work {
 
     public void setAuthority(int authority) {
         this.authority = authority;
+    }
+
+    public long getHotPoint() {
+        return hotPoint;
+    }
+
+    public void setHotPoint(long hotPoint) {
+        this.hotPoint = hotPoint;
     }
 }
