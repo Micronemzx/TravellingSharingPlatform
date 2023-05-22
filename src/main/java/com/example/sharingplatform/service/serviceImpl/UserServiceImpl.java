@@ -4,17 +4,22 @@ import com.example.sharingplatform.entity.email;
 import com.example.sharingplatform.entity.user;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.repository.*;
+import com.example.sharingplatform.utils.Result;
 import com.example.sharingplatform.utils.uuID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.system.ApplicationHome;
 import org.springframework.mail.javamail.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Random;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.IOException;
+import java.util.*;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -24,6 +29,24 @@ public class UserServiceImpl implements UserService{
     private mailRepository mailRep;
     @Resource
     private userRepository userRep;
+    public boolean isVaildToken(String token) {
+        user user=userRep.findByToken(token);
+        if(user==null) return false;
+        else return user.getLogin() == 1;
+    }
+    public boolean checkToken(HttpServletRequest request)
+    {
+        Cookie[] cookies = request.getCookies();
+        if(cookies==null) return false;
+        for (Cookie cookie : cookies) {
+            if (cookie.getName().equals("login_token")) {//有储存token的cookie
+                return isVaildToken(cookie.getValue());
+            }
+        }
+        return false;
+    }
+
+
     private String getRandCode() {
         String all = "0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM";
         int len = all.length();
@@ -78,6 +101,7 @@ public class UserServiceImpl implements UserService{
         if (entity.getOwnerID()!=0) return "该邮箱已注册账户，请直接登录或更换邮箱";
         else return sendMailCode(mail);
     }
+    //用户注册，判断用户填写的邮箱验证码与邮箱数据库存储的是否一致
     @Override
     public String registerUser(user newUser) {
         email res = mailRep.findByEmail(newUser.getEmail());
@@ -97,8 +121,50 @@ public class UserServiceImpl implements UserService{
         return user;
     }
     @Override
-    public user ifExist(String email){
-        user res= userRep.findByEmail(email);
-        return res;
+    public user ifExist(String email){ return userRep.findByEmail(email); }
+
+    @Override
+    public user getUserByID(long userID) { return userRep.findByUserID(userID); }
+    @Override
+    public String resetpassword(String email, String password) {
+        user res = ifExist(email);
+        if (res != null) {
+            res.setPassword(password);
+            return "成功";
+        }
+        else return "用户不存在";
     }
+
+    @Override
+    public void saveDetail(user userInfo, user res) {
+        res.setBirth(userInfo.getBirth());
+        res.setGender(userInfo.getGender());
+        res.setPhoneNumber(userInfo.getPhoneNumber());
+    }
+    private static final List<String> SUPPORTED_TYPES = Arrays.asList("image/jpeg", "image/png","image/svg","image/");
+    private boolean isSupportedType(MultipartFile file) {
+        return SUPPORTED_TYPES.contains(file.getContentType());
+    }
+    @Override
+    public Result savePhoto(long userID, MultipartFile file) {
+        if (file.isEmpty()) return Result.error(403,"文件为空");
+        if (!isSupportedType(file)) { return Result.error(403,"文件类型不支持"); }
+        ApplicationHome home = new ApplicationHome(getClass());
+        File jarfile = home.getSource();
+        String path = jarfile.getParentFile().toString()+"/uploads/";
+        String userPathRoot = path + userID + "/";
+        String filepath = userPathRoot + "avatar." + file.getContentType();
+        File dest = new File(filepath);
+        if (!dest.getParentFile().exists()) {
+            if (!dest.getParentFile().mkdirs()) return Result.error(500,"upload failed,mkdirs failed");
+        }
+        try {
+            file.transferTo(dest);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return Result.error(500,"upload failed " + e.getMessage());
+        }
+        return Result.success(200,"成功");
+    }
+
 }
