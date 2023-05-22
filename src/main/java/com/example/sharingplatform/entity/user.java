@@ -3,7 +3,7 @@ package com.example.sharingplatform.entity;
 import javax.persistence.*;
 import java.util.Date;
 
-@Table(name="user")
+@Table(name="user", uniqueConstraints={@UniqueConstraint(columnNames={"email"})},indexes = {@Index(columnList = "email")})
 @Entity
 public class user {
     @Id
@@ -12,12 +12,30 @@ public class user {
     private String userName;
     private String password;
     private String email;
-    private String mailcode;
+    private String mailCode;
     private String gender;
     private String phoneNumber;
     private Date birth;
     private String photoPath;
     private int workNumber;
+    private String token;
+    private int login;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public int getLogin() {
+        return login;
+    }
+
+    public void setLogin(int login) {
+        this.login = login;
+    }
 
     public long getUserID() {
         return userID;
@@ -51,12 +69,12 @@ public class user {
         this.email = email;
     }
 
-    public String getMailcode() {
-        return mailcode;
+    public String getMailCode() {
+        return mailCode;
     }
 
-    public void setMailcode(String mailcode) {
-        this.mailcode = mailcode;
+    public void setMailCode(String mailcode) {
+        this.mailCode = mailcode;
     }
 
     public String getGender() {
