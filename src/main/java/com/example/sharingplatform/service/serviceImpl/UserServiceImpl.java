@@ -6,6 +6,7 @@ import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.repository.*;
 import com.example.sharingplatform.utils.Result;
 import com.example.sharingplatform.utils.uuID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.mail.javamail.*;
@@ -17,8 +18,12 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.*;
 
 @Service
@@ -29,6 +34,8 @@ public class UserServiceImpl implements UserService{
     private mailRepository mailRep;
     @Resource
     private userRepository userRep;
+    @Resource
+    private workRepository workRep;
     public boolean isVaildToken(String token) {
         user user=userRep.findByToken(token);
         if(user==null) return false;
@@ -110,6 +117,7 @@ public class UserServiceImpl implements UserService{
         return "成功注册";
     }
 
+    //用户登录，标记login，获取token
     @Override
     public user login(user user) {
         if(user!=null){
@@ -135,26 +143,32 @@ public class UserServiceImpl implements UserService{
         else return "用户不存在";
     }
 
+    //更新用户信息
     @Override
     public void saveDetail(user userInfo, user res) {
         res.setBirth(userInfo.getBirth());
         res.setGender(userInfo.getGender());
         res.setPhoneNumber(userInfo.getPhoneNumber());
+        res.setUserName(userInfo.getUserName());
+        userRep.save(res);
     }
-    private static final List<String> SUPPORTED_TYPES = Arrays.asList("image/jpeg", "image/png","image/svg","image/");
+    private static final List<String> SUPPORTED_TYPES = Arrays.asList("image/jpeg", "image/png","image/svg","image/bmp","image/svg");
     private boolean isSupportedType(MultipartFile file) {
         return SUPPORTED_TYPES.contains(file.getContentType());
     }
+    //保存用户头像
     @Override
     public Result savePhoto(long userID, MultipartFile file) {
-        if (file.isEmpty()) return Result.error(403,"文件为空");
-        if (!isSupportedType(file)) { return Result.error(403,"文件类型不支持"); }
+        if (file.isEmpty()) return Result.error(403,"文件为空");        //判断文件是否为空
+        if (!isSupportedType(file)) { return Result.error(403,"文件类型不支持"); } //判断文件类型是否是图片
+        //用户头像地址为：程序运行地址/uploads/{userID}/{userID}.*
         ApplicationHome home = new ApplicationHome(getClass());
         File jarfile = home.getSource();
         String path = jarfile.getParentFile().toString()+"/uploads/";
         String userPathRoot = path + userID + "/";
-        String filepath = userPathRoot + "avatar." + file.getContentType();
+        String filepath = userPathRoot + userID + "." + file.getContentType();
         File dest = new File(filepath);
+
         if (!dest.getParentFile().exists()) {
             if (!dest.getParentFile().mkdirs()) return Result.error(500,"upload failed,mkdirs failed");
         }
@@ -164,7 +178,82 @@ public class UserServiceImpl implements UserService{
             e.printStackTrace();
             return Result.error(500,"upload failed " + e.getMessage());
         }
-        return Result.success(200,"成功");
+        return Result.success(200,filepath);
     }
 
+    @Override
+    public Result deleteUser(user res) {
+        userRep.delete(res);
+        workRep.deleteByUserID(res.getUserID());
+        return Result.success(200,"注销成功");
+    }
+
+    @Override
+    public void logout(user res)
+    {
+        res.setLogin(0);
+        res.setToken(null);
+        userRep.save(res);
+    }
+
+    @Override
+    public List<user> searchUser(String userName, HttpServletResponse response)
+    {
+        List<user> res = userRep.findByUserName("%"+userName+"%");
+        for (user i:res)
+        {
+            i.setToken(null);
+            i.setPassword(null);
+            downloadAvatar(i.getAvatar(),response);
+            File tmp = new File(i.getAvatar());
+            i.setAvatar(tmp.getName());
+        }
+        return res;
+    }
+
+    private String downloadAvatar(String downloadUrl,HttpServletResponse resp) {
+        if (!downloadUrl.isEmpty()) {
+            String pathName=downloadUrl;
+            File file = new File(pathName);
+            if (!file.exists()) {
+                return "file is not exist";
+            }
+            resp.reset();
+            resp.setContentType("application/octet-stream");
+            resp.setCharacterEncoding("utf-8");
+            resp.setContentLength((int)file.length());
+            resp.setHeader("Content-Disposition","attachment;filename="+file.getName());
+            byte[] buff = new byte[1024];
+            BufferedInputStream bis = null;
+            OutputStream os = null;
+            try {
+                os =resp.getOutputStream();
+                bis = new BufferedInputStream(Files.newInputStream(file.toPath()));
+                int i = bis.read(buff);
+                while (i!=-1) {
+                    os.write(buff,0,buff.length);
+                    os.flush();
+                    i = bis.read(buff);
+                }
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            finally {
+                if (bis != null) {
+                    try {
+                        bis.close();
+                    }
+                    catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            return "successful";
+        }
+        else {
+            return "file is not exist";
+        }
+    }
 }

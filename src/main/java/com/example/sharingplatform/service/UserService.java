@@ -6,6 +6,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 public interface UserService {
     String sendMailCode(String email) throws MessagingException;
@@ -23,4 +25,10 @@ public interface UserService {
     boolean checkToken(HttpServletRequest request);
 
     Result savePhoto(long userID, MultipartFile file);
+
+    Result deleteUser(user res);
+
+    void logout(user res);
+
+    List<user> searchUser(String userName, HttpServletResponse response);
 }

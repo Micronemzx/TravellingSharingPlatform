@@ -15,6 +15,7 @@ import javax.mail.MessagingException;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -64,6 +65,9 @@ public class userController {
                     cookie.setDomain("");
                     cookie.setHttpOnly(false);
                     response.addCookie(cookie);
+                    res.setToken(null);
+                    res.setPassword(null);
+                    res.setAvatar(null);
                     return Result.success(res, 200, "successful");
                 }
             }
@@ -87,7 +91,7 @@ public class userController {
         return Result.success(200,userservice.resetpassword(email,password));
     }
 
-    @PostMapping(path="/setPersonalDetail",consumes = {"multipart/form-data"})
+    @PostMapping(path="/setPersonalDetail",consumes = {"multipart/form-data"})  //修改用户信息（头像，生日，电话，性别）
     public Result setPersonalDetailController(@RequestPart("user") user userInfo,
                                               @RequestPart("photo") @NotNull MultipartFile file,
                                               HttpServletRequest request){
@@ -98,8 +102,42 @@ public class userController {
         if (res == null) return Result.error(500,"失败，用户不存在");
         Result result = userservice.savePhoto(userInfo.getUserID(),file);
         if (result.getCode()!=200) return result;
-
+        res.setAvatar(result.getMsg());
         userservice.saveDetail(userInfo,res);
         return Result.success(200,"成功");
+    }
+
+    @DeleteMapping("/delete")   //删除用户
+    public Result deleteUserController(@RequestBody long userID,HttpServletRequest request) {
+        boolean isLogin=userservice.checkToken(request);
+        if(!isLogin) return Result.error(401,"NeedLogin");
+        user res = userservice.getUserByID(userID);
+        if (res!=null) return userservice.deleteUser(res);
+        return Result.error(403,"用户不存在");
+    }
+
+    @GetMapping("/logout")      //用户登出
+    public Result logoutController(@RequestParam long userID,HttpServletRequest request,HttpServletResponse response)
+    {
+        boolean isLogin=userservice.checkToken(request);
+        if(!isLogin) return Result.error(401,"NeedLogin");
+        user res = userservice.getUserByID(userID);
+        if (res==null||res.getLogin()==0) return Result.error(400,"失败");
+        userservice.logout(res);
+        Cookie cookie = new Cookie("login_token", null);
+        cookie.setMaxAge(0);
+        response.addCookie(cookie);
+        return Result.success(200,"successful");
+    }
+
+    @GetMapping("/search")
+    public Result<userResult> searchUserController(@RequestParam String userName, HttpServletRequest request, HttpServletResponse response){
+        boolean isLogin=userservice.checkToken(request);
+        if(!isLogin) return Result.error(null,401,"NeedLogin");
+        List<user> res = userservice.searchUser(userName,response);
+        userResult userresult = new userResult();
+        userresult.setResultNumber(res.size());
+        userresult.setUserResult(res);
+        return Result.success(userresult,200,"成功");
     }
 }

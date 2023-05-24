@@ -20,6 +20,15 @@ public class user {
     private int workNumber;
     private String token;
     private int login;
+    private String avatar;
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
     public String getToken() {
         return token;
@@ -39,10 +48,6 @@ public class user {
 
     public long getUserID() {
         return userID;
-    }
-
-    public void setUserID(long userID) {
-        this.userID = userID;
     }
 
     public String getUserName() {
