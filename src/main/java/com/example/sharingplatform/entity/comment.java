@@ -9,7 +9,7 @@ public class comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long commentID;
-    private long userId;
+    private long userID;
     private long workID;
     private String commentContent;
     private Date commentTime;
@@ -22,12 +22,12 @@ public class comment {
         this.commentID = commentID;
     }
 
-    public long getUserId() {
-        return userId;
+    public long getUserID() {
+        return userID;
     }
 
-    public void setUserId(long userId) {
-        this.userId = userId;
+    public void setUserID(long userId) {
+        this.userID = userId;
     }
 
     public long getWorkID() {

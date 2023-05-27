@@ -182,10 +182,10 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public Result deleteUser(user res) {
-        userRep.delete(res);
+    public void deleteUser(user res) {
         workRep.deleteByUserID(res.getUserID());
-        return Result.success(200,"注销成功");
+        userRep.delete(res);
+        //return Result.success(200,"注销成功");
     }
 
     @Override
@@ -204,56 +204,14 @@ public class UserServiceImpl implements UserService{
         {
             i.setToken(null);
             i.setPassword(null);
-            downloadAvatar(i.getAvatar(),response);
+            downloadPicture(i.getAvatar(),response);
             File tmp = new File(i.getAvatar());
             i.setAvatar(tmp.getName());
         }
         return res;
     }
 
-    private String downloadAvatar(String downloadUrl,HttpServletResponse resp) {
-        if (!downloadUrl.isEmpty()) {
-            String pathName=downloadUrl;
-            File file = new File(pathName);
-            if (!file.exists()) {
-                return "file is not exist";
-            }
-            resp.reset();
-            resp.setContentType("application/octet-stream");
-            resp.setCharacterEncoding("utf-8");
-            resp.setContentLength((int)file.length());
-            resp.setHeader("Content-Disposition","attachment;filename="+file.getName());
-            byte[] buff = new byte[1024];
-            BufferedInputStream bis = null;
-            OutputStream os = null;
-            try {
-                os =resp.getOutputStream();
-                bis = new BufferedInputStream(Files.newInputStream(file.toPath()));
-                int i = bis.read(buff);
-                while (i!=-1) {
-                    os.write(buff,0,buff.length);
-                    os.flush();
-                    i = bis.read(buff);
-                }
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-                return e.getMessage();
-            }
-            finally {
-                if (bis != null) {
-                    try {
-                        bis.close();
-                    }
-                    catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-            return "successful";
-        }
-        else {
-            return "file is not exist";
-        }
+    private String downloadPicture(String downloadUrl,HttpServletResponse resp) {
+        return downloadPicture(downloadUrl, resp);
     }
 }

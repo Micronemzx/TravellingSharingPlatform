@@ -26,7 +26,7 @@ public interface UserService {
 
     Result savePhoto(long userID, MultipartFile file);
 
-    Result deleteUser(user res);
+    void deleteUser(user res);
 
     void logout(user res);
 

@@ -21,6 +21,16 @@ public class work {
     private long commentNumber;
     private int authority;
     private long hotPoint;
+    private int pictureNumber;
+
+    public int getPictureNumber() {
+        return pictureNumber;
+    }
+
+    public void setPictureNumber(int pictureNumber) {
+        this.pictureNumber = pictureNumber;
+    }
+
     public long getWorkID() {
         return workID;
     }

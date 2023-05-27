@@ -112,7 +112,7 @@ public class userController {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
         user res = userservice.getUserByID(userID);
-        if (res!=null) return userservice.deleteUser(res);
+        if (res!=null) { userservice.deleteUser(res); return Result.success(200,"注销成功"); }
         return Result.error(403,"用户不存在");
     }
 
@@ -130,7 +130,7 @@ public class userController {
         return Result.success(200,"successful");
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search")  //搜索用户
     public Result<userResult> searchUserController(@RequestParam String userName, HttpServletRequest request, HttpServletResponse response){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(null,401,"NeedLogin");

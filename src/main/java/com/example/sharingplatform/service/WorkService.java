@@ -7,10 +7,27 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 
 public interface WorkService {
-    void like(work work, user user);
+    void like(work work);
 
     work getWorkByID(long workID);
+
+    void deleteWork(work res);
+
+    String sendPicture(work res, HttpServletResponse response);
+
+    boolean checkPicture(MultipartFile file);
+
+    void saveWork(work work);
+
+    Result savePhoto(long workID, long userID, int cnt, MultipartFile partFile);
+
+    void deletePicture(long workID);
+    List<work> searchWork(String title,int page);
+
+    void complaintWork(long workID, long userID);
 }
