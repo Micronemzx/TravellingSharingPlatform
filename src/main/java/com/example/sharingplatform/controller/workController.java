@@ -29,19 +29,22 @@ public class workController {
     @PostMapping("/testPost")   //测试POST
     public Result testPost(@RequestBody String a) { return Result.success(500,a); }
 
-    @PostMapping("/like")
-    public Result likeWorkController(@RequestPart("userID") long userID, @RequestPart("workID") long workID, HttpServletRequest request)
+    @PostMapping("/like")       //动态点赞
+    public Result likeWorkController(@RequestPart("userID") long userID,
+                                     @RequestPart("workID") long workID,
+                                     HttpServletRequest request)
     {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
         user userRes = userservice.getUserByID(userID);
         work workRes = workservice.getWorkByID(workID);
         if (userRes==null||workRes==null) { return Result.error(500,"不存在该用户或该动态"); }
-        workservice.like(workRes);
+        if (workservice.getLikeLink(workID,userID) != null) { return Result.error(500,"您已点过赞不可重复点赞"); }
+        workservice.like(workRes,userID);
         return Result.success(200,"成功");
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete")       //删除动态
     public Result deleteWorkController(@RequestBody long workID,HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
@@ -50,7 +53,7 @@ public class workController {
         else return Result.error(404,"动态不存在");
     }
 
-    @GetMapping("/information")
+    @GetMapping("/information")     //获取动态详情
     public Result getWorkDetailsController(@RequestParam long workID, HttpServletResponse response){
         work res = workservice.getWorkByID(workID);
         if (res==null) return Result.error(404,"动态不存在");
@@ -58,7 +61,7 @@ public class workController {
         return Result.success(res,200,"成功");
     }
 
-    @PostMapping(path="/add",consumes = {"multipart/form-data"})
+    @PostMapping(path="/add",consumes = {"multipart/form-data"})        //增添动态
     public Result addWorkController(@RequestPart("work") work workInfo,
                                     @RequestPart("picture") @NotNull MultipartFile[] file,
                                     HttpServletRequest request){
@@ -85,7 +88,7 @@ public class workController {
         return Result.success(200,"成功");
     }
 
-    @GetMapping("/search")
+    @GetMapping("/search")          //搜索动态标题
     public Result<workResult> searchWorkController(@RequestParam("title") String title,
                                                    @RequestParam("page") int page,
                                                    HttpServletRequest request,
@@ -100,7 +103,7 @@ public class workController {
         return Result.success(result,200,"成功");
     }
 
-    @PostMapping("/complaint")
+    @PostMapping("/complaint")      //举报动态
     public Result complaintWorkController(@RequestPart("workID") long workID,
                                           @RequestPart("userID") long userID,
                                           HttpServletRequest request) {

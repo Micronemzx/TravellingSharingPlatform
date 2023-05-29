@@ -1,5 +1,6 @@
 package com.example.sharingplatform.service;
 
+import com.example.sharingplatform.entity.likeLink;
 import com.example.sharingplatform.entity.user;
 import com.example.sharingplatform.entity.work;
 import com.example.sharingplatform.utils.Result;
@@ -12,7 +13,10 @@ import java.util.List;
 
 
 public interface WorkService {
-    void like(work work);
+
+    void like(work work, long userID);
+
+    likeLink getLikeLink(long workID, long userID);
 
     work getWorkByID(long workID);
 

@@ -1,13 +1,9 @@
 package com.example.sharingplatform.service.serviceImpl;
 
-import com.example.sharingplatform.entity.complaint;
-import com.example.sharingplatform.entity.picture;
-import com.example.sharingplatform.entity.user;
-import com.example.sharingplatform.entity.work;
+import com.example.sharingplatform.entity.*;
 import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.repository.*;
 import com.example.sharingplatform.utils.Result;
-import com.example.sharingplatform.utils.uuID;
 
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.stereotype.Service;
@@ -34,13 +30,21 @@ public class WorkServiceImpl implements WorkService {
     pictureRepository picRep;
     @Resource
     reportRepository reportRep;
+    @Resource
+    likeRepository likeRep;
 
     @Override
-    public void like(work work) {
+    public void like(work work,long userID) {
         work.setLikeNumber(work.getLikeNumber()+1);
+        work.setHotPoint(work.getHotPoint()+1);
         workRep.save(work);
+        likeLink relation = new likeLink();
+        relation.setWorkID(work.getWorkID());
+        relation.setUserID(userID);
+        likeRep.save(relation);
     }
-
+    @Override
+    public likeLink getLikeLink(long workID, long userID) { return likeRep.findByWorkIDAndUserID(workID,userID); }
     @Override
     public work getWorkByID(long workID) {
         return workRep.findByWorkID(workID);
