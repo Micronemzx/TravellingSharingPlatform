@@ -1,7 +1,6 @@
 package com.example.sharingplatform.controller;
 
 import com.example.sharingplatform.entity.*;
-import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.utils.*;
 
@@ -21,9 +20,6 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/user")
 public class userController {
-
-    @Resource
-    private WorkService workservice;
 
     @Resource
     private UserService userservice;

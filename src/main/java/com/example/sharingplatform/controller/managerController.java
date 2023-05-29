@@ -1,7 +1,7 @@
 package com.example.sharingplatform.controller;
 
 import com.example.sharingplatform.entity.*;
-import com.example.sharingplatform.repository.administratorRepository;
+import com.example.sharingplatform.repository.managerRepository;
 import com.example.sharingplatform.repository.reportRepository;
 import com.example.sharingplatform.service.NotificationService;
 import com.example.sharingplatform.service.UserService;
@@ -15,11 +15,11 @@ import java.util.List;
 import java.util.Objects;
 
 @RestController
-@RequestMapping("/administrator")
-public class adminController {
+@RequestMapping("/manager")
+public class managerController {
 
     @Resource
-    administratorRepository adminRep;
+    managerRepository managerRep;
     @Resource
     WorkService workservice;
     @Resource
@@ -30,41 +30,41 @@ public class adminController {
     NotificationService notificationservice;
 
     @GetMapping("/login")   //管理员登录
-    public Result<String> loginController(@RequestParam("administratorName") String administratorName,
-                                  @RequestParam("administratorPsd") String administratorPsd){
+    public Result<String> loginController(@RequestParam("managerName") String managerName,
+                                  @RequestParam("managerPsd") String managerPsd){
 
-        if (Objects.equals(administratorName, "root") && Objects.equals(administratorPsd, "rootpsd_3306"))
+        if (Objects.equals(managerName, "root") && Objects.equals(managerPsd, "rootpsd_3306"))
             return Result.success("root",200,"成功");
-        if (adminRep.findByAdministratorNameAndAdministratorPsd(administratorName,administratorPsd) != null){
-            return Result.success(administratorName,200,"成功");
+        if (managerRep.findByManagerNameAndManagerPsd(managerName,managerPsd) != null){
+            return Result.success(managerName,200,"成功");
         }
         return Result.error(null,403,"失败");
     }
 
     @PostMapping("/add")    //添加管理员
-    public Result addAdministratorController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
+    public Result addManagerController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
                                              @RequestPart("newName") String newName,@RequestPart("newPsd") String newPsd)
     {
         if (Objects.equals(rootName, "root") && Objects.equals(rootPsd, "rootpsd_3306"))
         {
-            administrator entity = new administrator();
-            entity.setAdministratorName(newName);
-            entity.setAdministratorPsd(newPsd);
-            adminRep.save(entity);
+            manager entity = new manager();
+            entity.setManagerName(newName);
+            entity.setManagerPsd(newPsd);
+            managerRep.save(entity);
             return Result.success(200,"成功");
         }
         return Result.error(403,"无权限");
     }
 
-    @DeleteMapping("/deleteAdmin")  //删除管理员
-    public Result deleteAdministratorController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
+    @DeleteMapping("/deletemanager")  //删除管理员
+    public Result deleteManagerController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
                                              @RequestPart("deleteName") String name,@RequestPart("deletePsd") String psd)
     {
         if (Objects.equals(rootName, "root") && Objects.equals(rootPsd, "rootpsd_3306"))
         {
-            administrator entity = adminRep.findByAdministratorNameAndAdministratorPsd(name,psd);
+            manager entity = managerRep.findByManagerNameAndManagerPsd(name,psd);
             if (entity == null) return Result.error(400,"失败，删除用户不存在");
-            adminRep.delete(entity);
+            managerRep.delete(entity);
             return Result.success(200,"成功");
         }
         return Result.error(403,"无权限");
