@@ -3,13 +3,14 @@ package com.example.sharingplatform.controller;
 import com.example.sharingplatform.entity.*;
 import com.example.sharingplatform.repository.administratorRepository;
 import com.example.sharingplatform.repository.reportRepository;
+import com.example.sharingplatform.service.NotificationService;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.utils.Result;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,6 +26,8 @@ public class adminController {
     UserService userservice;
     @Resource
     reportRepository reportRep;
+    @Resource
+    NotificationService notificationservice;
 
     @GetMapping("/login")   //管理员登录
     public Result<String> loginController(@RequestParam("administratorName") String administratorName,
@@ -88,29 +91,41 @@ public class adminController {
         long workID = report.getWorkID();
         work res = workservice.getWorkByID(workID);
         if (res==null) return Result.error(404,"动态不存在");
-        report.setStatus(1);
-        reportRep.save(report);
+        List<complaint> same = reportRep.findByWorkID(workID);
+        for (complaint i : same) {
+            i.setStatus(1);
+            reportRep.save(i);
+            notificationservice.sendNotification(i.getUserID(),"您所举报的动态: "+i.getTitle()+"已被核实为违规，官方已对该动态删除处理，并警告该动态作者，感谢您对平台的贡献。",1);
+        }
+        notificationservice.sendNotification(res.getUserID(),"您的动态: "+res.getTitle()+"涉嫌违规，平台已对该动态删除，若有异议请联系平台客服",1);
         workservice.deleteWork(res);
         return Result.success(200,"成功");
     }
 
-    @PostMapping("/saveWork")
+    @PostMapping("/saveWork")   //举报失败，保留作品
     public Result saveWorkController(@RequestBody complaint report) {
         long workID = report.getWorkID();
         work res = workservice.getWorkByID(workID);
         if (res==null) return Result.error(404,"动态不存在");
-        report.setStatus(2);
-        reportRep.save(report);
-        workservice.deleteWork(res);
+        List<complaint> same = reportRep.findByWorkID(workID);
+        for (complaint i : same) {
+            i.setStatus(2);
+            reportRep.save(i);
+            notificationservice.sendNotification(i.getUserID(),"您所举报的动态: "+i.getTitle()+"并无违规现象，感谢您对平台的贡献，我们将持续关注该动态的消息。",1);
+        }
         return Result.success(200,"成功");
     }
-    @GetMapping("/report")
+    @GetMapping("/report")  //获取举报列表
     public Result<reportResult> getWorkReport()
     {
-        List<complaint> res = reportRep.findByStatusOrderByIdAsc(0);
+        List<complaint> res = reportRep.findByStatusOrderByWorkIDAsc(0);
+        if (res.size()==0) return Result.success(null,200,"列表为空");
         reportResult result = new reportResult();
         result.setResultNumber(res.size());
-        result.setReportResult(res);
+        List<complaint> dist = new ArrayList<>();
+        dist.add(res.get(0));
+        for (int i=1;i<res.size();++i) if (res.get(i).getWorkID()!=res.get(i-1).getWorkID()) dist.add(res.get(i));
+        result.setReportResult(dist);
         return Result.success(result,200,"成功");
     }
 }

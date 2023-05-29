@@ -9,6 +9,7 @@ public class complaint {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
     private long workID;
+    private String title;
     private long userID;
     private int status;
 
@@ -34,5 +35,13 @@ public class complaint {
 
     public void setStatus(int status) {
         this.status = status;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }

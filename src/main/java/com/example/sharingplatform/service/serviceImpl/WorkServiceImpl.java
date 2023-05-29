@@ -88,7 +88,6 @@ public class WorkServiceImpl implements WorkService {
     @Override
     public void deletePicture(long workID) {
         picRep.deleteByWorkID(workID);
-        return;
     }
 
     @Override
@@ -110,6 +109,7 @@ public class WorkServiceImpl implements WorkService {
             res = new complaint();
             res.setWorkID(workID);
             res.setUserID(userID);
+            res.setTitle(getWorkByID(workID).getTitle());
             reportRep.save(res);
         }
     }
@@ -117,14 +117,16 @@ public class WorkServiceImpl implements WorkService {
     @Override
     public String sendPicture(work work,HttpServletResponse response) {
         List<picture> res = picRep.findByWorkID(work.getWorkID());
-        //StringBuilder result = new StringBuilder();
+        StringBuilder result = new StringBuilder();
+        int cnt = 0;
         for (picture i : res)
         {
-           String ans = downloadPicture(i.getSavePath(),response);
-           //result.append(ans).append(" ");
+            cnt++;
+            String ans = downloadPicture(i.getSavePath(),response);
+            result.append("picture ").append(cnt).append(":").append(ans).append(" ");
         }
-        return "successful";
-        //return result.toString();
+        //return "successful";
+        return result.toString();
     }
 
     static String downloadPicture(String downloadUrl, HttpServletResponse resp) {

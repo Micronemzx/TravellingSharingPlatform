@@ -9,5 +9,6 @@ import java.util.List;
 @Repository
 public interface reportRepository extends JpaRepository<complaint,Long> {
     complaint findByWorkIDAndUserID(long workID,long userID);
-    List<complaint> findByStatusOrderByIdAsc(int status);
+    List<complaint> findByWorkID(long workID);
+    List<complaint> findByStatusOrderByWorkIDAsc(int status);
 }

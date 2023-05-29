@@ -2,8 +2,12 @@ package com.example.sharingplatform.controller;
 
 import com.example.sharingplatform.entity.comment;
 import com.example.sharingplatform.entity.commentResult;
+import com.example.sharingplatform.entity.user;
+import com.example.sharingplatform.entity.work;
 import com.example.sharingplatform.service.CommentService;
+import com.example.sharingplatform.service.NotificationService;
 import com.example.sharingplatform.service.UserService;
+import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.utils.Result;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,9 +21,13 @@ public class commentController {
     @Resource
     UserService userservice;
     @Resource
+    WorkService workservice;
+    @Resource
     CommentService commentservice;
+    @Resource
+    NotificationService notificationservice;
 
-    @PostMapping("/add")
+    @PostMapping("/add")    //添加评论
     public Result commentAddController(@RequestPart("workID") long workID,
                                        @RequestPart("userID") long userID,
                                        @RequestPart("commentContent") String commentContent,
@@ -27,13 +35,16 @@ public class commentController {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
         commentservice.add(workID,userID,commentContent);
+        work res = workservice.getWorkByID(workID);
+        user writer = userservice.getUserByID(userID);
+        notificationservice.sendNotification(res.getUserID(),"用户 "+writer.getUserName()+" 评论了您的动态（ "+res.getTitle()+" ）: \n"+commentContent,2);
         return Result.success(200,"成功");
     }
 
-    @GetMapping("/get")
+    @GetMapping("/get")     //获取动态下的所有评论
     public Result<commentResult> commentGetController(@RequestParam long workID, HttpServletRequest request) {
         boolean isLogin=userservice.checkToken(request);
-        if(!isLogin) return Result.error(401,"NeedLogin");
+        if(!isLogin) return Result.error(null,401,"NeedLogin");
         List<comment> res = commentservice.getCommentDetail(workID);
         commentResult commentRes = new commentResult();
         commentRes.setResultNumber(res.size());
@@ -41,7 +52,7 @@ public class commentController {
         return Result.success(commentRes,200,"成功");
     }
 
-    @DeleteMapping("/delete")
+    @DeleteMapping("/delete")   //删除评论
     public Result deleteCommentController(@RequestPart("workID") long workID,
                                           @RequestPart("userID") long userID,
                                           @RequestPart("commentID") long commentID,
