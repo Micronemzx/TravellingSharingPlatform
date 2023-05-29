@@ -31,4 +31,6 @@ public interface UserService {
     void logout(user res);
 
     List<user> searchUser(String userName, HttpServletResponse response);
+    void banUser(user res);
+    boolean ifBanned(user res);
 }

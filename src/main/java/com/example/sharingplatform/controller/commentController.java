@@ -2,7 +2,6 @@ package com.example.sharingplatform.controller;
 
 import com.example.sharingplatform.entity.comment;
 import com.example.sharingplatform.entity.commentResult;
-import com.example.sharingplatform.repository.commentRepository;
 import com.example.sharingplatform.service.CommentService;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.utils.Result;

@@ -52,6 +52,8 @@ public class userController {
             return Result.success(null,200,"用户不存在");
         }
         else {
+            if (!userservice.ifBanned(user)) return Result.error(null,403,"用户已被封禁");
+            else
             {
                 //user res=userservice.login(email,password);
                 if(!Objects.equals(user.getPassword(), password)){

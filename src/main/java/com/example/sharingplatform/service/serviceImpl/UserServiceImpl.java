@@ -130,7 +130,8 @@ public class UserServiceImpl implements UserService{
     }
     @Override
     public user ifExist(String email){ return userRep.findByEmail(email); }
-
+    @Override
+    public boolean ifBanned(user res) {if (res.getLogin()<0) return false; return true; }
     @Override
     public user getUserByID(long userID) { return userRep.findByUserID(userID); }
     @Override
@@ -188,6 +189,12 @@ public class UserServiceImpl implements UserService{
         //return Result.success(200,"注销成功");
     }
 
+    @Override
+    public void banUser(user res)
+    {
+        res.setLogin(-1);
+        userRep.save(res);
+    }
     @Override
     public void logout(user res)
     {
