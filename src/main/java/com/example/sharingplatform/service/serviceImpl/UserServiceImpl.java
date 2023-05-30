@@ -8,6 +8,7 @@ import com.example.sharingplatform.utils.Result;
 import com.example.sharingplatform.utils.uuID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.mail.javamail.*;
 import org.springframework.stereotype.Service;
@@ -65,13 +66,14 @@ public class UserServiceImpl implements UserService{
         }
         return code.toString();
     }
-
+    @Value("${spring.mail.username}")
+    private String from;
     private void sendMail(String receiver,String message) throws MessagingException {
-
         //复杂邮件
+
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage);
-        messageHelper.setFrom("旅游分享平台");
+        messageHelper.setFrom(from);
         messageHelper.setTo(receiver);
         messageHelper.setSubject("旅游分享平台邮箱验证码");
         messageHelper.setText("亲爱的用户：\n     您好！您正在使用旅游分享平台的身份验证服务，本次请求验证码为：\n"+message+"\n请勿向他人泄露该验证码，否则您的账号将有被盗号的风险。\n");
@@ -105,6 +107,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public String sendMailCodeForRegister(String mail) throws MessagingException {
         email entity = mailRep.findByEmail(mail);
+        if (entity == null) return sendMailCode(mail);
         if (entity.getOwnerID()!=0) return "该邮箱已注册账户，请直接登录或更换邮箱";
         else return sendMailCode(mail);
     }
@@ -114,6 +117,7 @@ public class UserServiceImpl implements UserService{
         email res = mailRep.findByEmail(newUser.getEmail());
         if (!Objects.equals(res.getMailCode(), newUser.getMailCode())) return "邮箱验证码错误";
         userRep.save(newUser);
+        res.setOwnerID(newUser.getUserID());
         return "成功注册";
     }
 
