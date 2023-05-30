@@ -1,6 +1,7 @@
 package com.example.sharingplatform.controller;
 
 import com.example.sharingplatform.entity.*;
+import com.example.sharingplatform.service.NotificationService;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.utils.*;
 
@@ -23,6 +24,8 @@ public class userController {
 
     @Resource
     private UserService userservice;
+    @Resource
+    private NotificationService notificationservice;
 
     @GetMapping("/testGet") //测试GET
     public Result testGet(@RequestParam String a) { return Result.success(500,a); }
@@ -53,7 +56,7 @@ public class userController {
             {
                 //user res=userservice.login(email,password);
                 if(!Objects.equals(user.getPassword(), password)){
-                    return Result.success(null,200,"wrong password");
+                    return Result.error(null,500,"wrong password");
                 }
                 else {
                     user res=userservice.login(user);
@@ -137,5 +140,16 @@ public class userController {
         userresult.setResultNumber(res.size());
         userresult.setUserResult(res);
         return Result.success(userresult,200,"成功");
+    }
+
+    @GetMapping("getNotice")    //获取通知
+    public Result<notificationResult> getNotificationController(@RequestParam long userID,HttpServletRequest request){
+        boolean isLogin=userservice.checkToken(request);
+        if(!isLogin) return Result.error(null,401,"NeedLogin");
+        List<notification> res = notificationservice.getNotification(userID);
+        notificationResult result = new notificationResult();
+        result.setResultNumber(res.size());
+        result.setNotificationResult(res);
+        return Result.success(result);
     }
 }

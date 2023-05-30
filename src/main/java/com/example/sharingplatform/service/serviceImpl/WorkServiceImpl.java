@@ -5,7 +5,11 @@ import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.repository.*;
 import com.example.sharingplatform.utils.Result;
 
+import org.hibernate.jdbc.Work;
 import org.springframework.boot.system.ApplicationHome;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +36,8 @@ public class WorkServiceImpl implements WorkService {
     reportRepository reportRep;
     @Resource
     likeRepository likeRep;
+    @Resource
+    placeRepository placeRep;
 
     @Override
     public void like(work work,long userID) {
@@ -46,6 +52,24 @@ public class WorkServiceImpl implements WorkService {
     @Override
     public likeLink getLikeLink(long workID, long userID) { return likeRep.findByWorkIDAndUserID(workID,userID); }
     @Override
+    public List<String> getHotWorkList() {
+        Sort sort = Sort.by(Sort.Direction.DESC,"hotPoint");
+        PageRequest pr = PageRequest.of(0, 10, sort);
+        List<place> res = placeRep.findAll(pr).getContent();
+        List<String> result = new ArrayList<>();
+        for (place i : res) { result.add(i.getName()); }
+        return result;
+    }
+    @Override
+    public List<String> getHotPlaceList() {
+        Sort sort = Sort.by(Sort.Direction.DESC,"hotPoint");
+        PageRequest pr = PageRequest.of(0, 10, sort);
+        List<work> res = workRep.findAll(pr).getContent();
+        List<String> result = new ArrayList<>();
+        for (work i : res) { result.add(i.getTitle()); }
+        return result;
+    }
+    @Override
     public work getWorkByID(long workID) {
         return workRep.findByWorkID(workID);
     }
@@ -55,9 +79,7 @@ public class WorkServiceImpl implements WorkService {
 
     private static final List<String> SUPPORTED_TYPES = Arrays.asList("image/jpeg", "image/png","image/svg","image/bmp","image/svg");
 
-    public boolean checkPicture(MultipartFile file) {
-        return SUPPORTED_TYPES.contains(file.getContentType());
-    }
+    public boolean checkPicture(MultipartFile file) { return SUPPORTED_TYPES.contains(file.getContentType());  }
     public void saveWork(work workInfo) { workRep.save(workInfo); }
 
     @Override

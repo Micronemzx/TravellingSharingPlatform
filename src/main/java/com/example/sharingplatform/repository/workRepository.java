@@ -1,10 +1,12 @@
 package com.example.sharingplatform.repository;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 import com.example.sharingplatform.entity.work;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.awt.print.Pageable;
 import java.util.List;
 
 @Repository
@@ -13,4 +15,5 @@ public interface workRepository extends JpaRepository<work,Long> {
     void deleteByUserID(long userID);
     work findByWorkID(long workID);
     List<work> findByTitle(String title);
+   // List<work> findAll(PageRequest pageable);
 }

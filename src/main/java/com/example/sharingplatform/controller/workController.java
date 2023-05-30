@@ -94,7 +94,7 @@ public class workController {
                                                    HttpServletRequest request,
                                                    HttpServletResponse response){
         boolean isLogin=userservice.checkToken(request);
-        if(!isLogin) return Result.error(401,"NeedLogin");
+        if(!isLogin) return Result.error(null,401,"NeedLogin");
         List<work> res = workservice.searchWork(title,page);
         for (work i : res) workservice.sendPicture(i,response);
         workResult result = new workResult();
@@ -111,5 +111,15 @@ public class workController {
         if(!isLogin) return Result.error(401,"NeedLogin");
         workservice.complaintWork(workID,userID);
         return Result.success(200,"成功");
+    }
+
+    @GetMapping("/getList")     //获取话题热度榜单
+    public Result<List<String>> getHotWorkListController() {
+        return Result.success(workservice.getHotWorkList(),200,"成功");
+    }
+
+    @GetMapping("/getPlaceList")    //获取地点榜单
+    public Result<List<String>> getHotPlaceListController() {
+        return Result.success(workservice.getHotPlaceList(),200,"成功");
     }
 }

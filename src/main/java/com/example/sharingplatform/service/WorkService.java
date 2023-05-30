@@ -34,4 +34,8 @@ public interface WorkService {
     List<work> searchWork(String title,int page);
 
     void complaintWork(long workID, long userID);
+
+    List<String> getHotWorkList();
+
+    List<String> getHotPlaceList();
 }
