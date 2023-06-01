@@ -12,7 +12,8 @@ import java.util.List;
 public interface UserService {
     String sendMailCode(String email) throws MessagingException;
     String registerUser(user newUser);
-    String sendMailCodeForRegister(String mail) throws MessagingException;
+
+    //String sendMailCodeForRegister(String mail) throws MessagingException;
 
     user login(user user);
 
@@ -33,4 +34,6 @@ public interface UserService {
     List<user> searchUser(String userName, HttpServletResponse response);
     void banUser(user res);
     boolean ifBanned(user res);
+
+    Result<user> verifyUser(user user,String email,String mailCode);
 }

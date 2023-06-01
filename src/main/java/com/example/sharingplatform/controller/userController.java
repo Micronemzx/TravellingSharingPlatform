@@ -35,13 +35,15 @@ public class userController {
 
     @GetMapping("/sendmailcode")    //发送邮箱验证码
     public Result sendmailcode(@RequestParam String mail) throws MessagingException {
-        return Result.success(userservice.sendMailCodeForRegister(mail));
+        return Result.success(200,userservice.sendMailCode(mail));
     }
 
     @PostMapping("/register")   //注册
     public Result register(@RequestBody user newUser)
     {
-        return Result.success(userservice.registerUser(newUser));
+        String res = userservice.registerUser(newUser);
+        if (Objects.equals(res, "成功注册")) return Result.success(200,res);
+        else return Result.error(500,res);
     }
 
     @GetMapping("/login")   //登录
@@ -76,19 +78,24 @@ public class userController {
     }//登录
 
     @GetMapping("/verify")  //找回密码-验证身份
-    public Result<user> verifyController(@RequestBody String email,@RequestBody String mailCode)
+    public Result<user> verifyController(@RequestParam String email,@RequestParam String mailCode)
     {
         user res = userservice.ifExist(email);
-        if (Objects.equals(res.getMailCode(), mailCode))
+        if (res == null) return Result.error(null,404,"不存在该用户");
+        return userservice.verifyUser(res,email,mailCode);
+        /*if (Objects.equals(mail.getMailCode(), mailCode))
         {
             return Result.success(res,200,"成功");
         }
-        return Result.success(res,200,"验证码错误");
+        return Result.success(res,200,"验证码错误");*/
     }
 
     @PostMapping("/resetpassword")  //重置密码
-    public Result resetPasswordController(@RequestBody String email,@RequestBody String password)
+    public Result resetPasswordController(@RequestBody user email_password)
     {
+        String email=email_password.getEmail();
+        String password=email_password.getPassword();
+        //System.out.println(email_password.toString());
         return Result.success(200,userservice.resetpassword(email,password));
     }
 
@@ -108,7 +115,7 @@ public class userController {
         return Result.success(200,"成功");
     }
 
-    @DeleteMapping("/delete")   //删除用户
+    @PostMapping("/delete")   //删除用户
     public Result deleteUserController(@RequestBody long userID,HttpServletRequest request) {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");

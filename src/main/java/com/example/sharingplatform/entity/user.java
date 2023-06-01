@@ -78,8 +78,8 @@ public class user {
         return mailCode;
     }
 
-    public void setMailCode(String mailcode) {
-        this.mailCode = mailcode;
+    public void setMailCode(String mailCode) {
+        this.mailCode = mailCode;
     }
 
     public String getGender() {

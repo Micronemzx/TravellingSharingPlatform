@@ -7,6 +7,7 @@ import com.example.sharingplatform.repository.*;
 import com.example.sharingplatform.utils.Result;
 import com.example.sharingplatform.utils.uuID;
 
+import org.hibernate.event.internal.DefaultSaveEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.system.ApplicationHome;
@@ -26,6 +27,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.*;
+
+import static com.example.sharingplatform.service.serviceImpl.WorkServiceImpl.downloadPicture;
 
 @Service
 public class UserServiceImpl implements UserService{
@@ -76,7 +79,7 @@ public class UserServiceImpl implements UserService{
         messageHelper.setFrom(from);
         messageHelper.setTo(receiver);
         messageHelper.setSubject("旅游分享平台邮箱验证码");
-        messageHelper.setText("亲爱的用户：\n     您好！您正在使用旅游分享平台的身份验证服务，本次请求验证码为：\n"+message+"\n请勿向他人泄露该验证码，否则您的账号将有被盗号的风险。\n");
+        messageHelper.setText("亲爱的用户：\n     您好！您正在使用旅游分享平台的身份验证服务，本次请求验证码为：\n"+message+"\n邮箱验证码在5分钟内有效。\n请勿向他人泄露该验证码，否则您的账号将有被盗号的风险。\n");
         mailSender.send(mimeMessage);
     }
 
@@ -104,21 +107,31 @@ public class UserServiceImpl implements UserService{
         sendMail(mail,mailCode);
         return "成功";
     }
-    @Override
-    public String sendMailCodeForRegister(String mail) throws MessagingException {
-        email entity = mailRep.findByEmail(mail);
-        if (entity == null) return sendMailCode(mail);
-        if (entity.getOwnerID()!=0) return "该邮箱已注册账户，请直接登录或更换邮箱";
-        else return sendMailCode(mail);
-    }
+
     //用户注册，判断用户填写的邮箱验证码与邮箱数据库存储的是否一致
     @Override
     public String registerUser(user newUser) {
         email res = mailRep.findByEmail(newUser.getEmail());
+        if (res==null) return "邮箱验证码错误";
+        if (res.getOwnerID()!=0) return "该邮箱已经注册，请直接登录或更换邮箱";
         if (!Objects.equals(res.getMailCode(), newUser.getMailCode())) return "邮箱验证码错误";
+        Date now = new Date();
+        Date pre = res.getLastUpdateTime();
+        if ((now.getTime()-pre.getTime())/1000/60/5!=0) return "验证码已经失效";
         userRep.save(newUser);
         res.setOwnerID(newUser.getUserID());
+        mailRep.save(res);
         return "成功注册";
+    }
+    @Override
+    public Result<user> verifyUser(user user,String email,String mailCode){
+        email res = mailRep.findByEmail(email);
+        if (res==null) return Result.error(null,404,"用户不存在");
+        if (!Objects.equals(res.getMailCode(), mailCode)) return Result.error(null,403,"验证码错误");
+        Date now = new Date();
+        Date pre = res.getLastUpdateTime();
+        if ((now.getTime()-pre.getTime())/1000/60/5!=0) return Result.error(null,403,"验证码已经失效");
+        return Result.success(user,200,"验证成功");
     }
 
     //用户登录，标记login，获取token
@@ -135,7 +148,9 @@ public class UserServiceImpl implements UserService{
     @Override
     public user ifExist(String email){ return userRep.findByEmail(email); }
     @Override
-    public boolean ifBanned(user res) {if (res.getLogin()<0) return false; return true; }
+    public boolean ifBanned(user res) {
+        return res.getLogin() >= 0;
+    }
     @Override
     public user getUserByID(long userID) { return userRep.findByUserID(userID); }
     @Override
@@ -143,6 +158,7 @@ public class UserServiceImpl implements UserService{
         user res = ifExist(email);
         if (res != null) {
             res.setPassword(password);
+            userRep.save(res);
             return "成功";
         }
         else return "用户不存在";
@@ -215,14 +231,15 @@ public class UserServiceImpl implements UserService{
         {
             i.setToken(null);
             i.setPassword(null);
-            downloadPicture(i.getAvatar(),response);
+            downloadPictureForUser(i.getAvatar(),response);
             File tmp = new File(i.getAvatar());
             i.setAvatar(tmp.getName());
         }
         return res;
     }
 
-    private String downloadPicture(String downloadUrl,HttpServletResponse resp) {
+
+    private String downloadPictureForUser(String downloadUrl,HttpServletResponse resp) {
         return downloadPicture(downloadUrl, resp);
     }
 }

@@ -28,12 +28,12 @@ public class commentController {
     NotificationService notificationservice;
 
     @PostMapping("/add")    //添加评论
-    public Result commentAddController(@RequestPart("workID") long workID,
-                                       @RequestPart("userID") long userID,
-                                       @RequestPart("commentContent") String commentContent,
-                                       HttpServletRequest request){
+    public Result commentAddController(@RequestBody comment newComment,HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
+        long workID = newComment.getWorkID();
+        long userID = newComment.getUserID();
+        String commentContent = newComment.getCommentContent();
         commentservice.add(workID,userID,commentContent);
         work res = workservice.getWorkByID(workID);
         user writer = userservice.getUserByID(userID);
@@ -52,14 +52,14 @@ public class commentController {
         return Result.success(commentRes,200,"成功");
     }
 
-    @DeleteMapping("/delete")   //删除评论
-    public Result deleteCommentController(@RequestPart("workID") long workID,
-                                          @RequestPart("userID") long userID,
-                                          @RequestPart("commentID") long commentID,
-                                          HttpServletRequest request)
+    @PostMapping("/delete")   //删除评论
+    public Result deleteCommentController(@RequestBody comment comment,HttpServletRequest request)
     {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
+        long commentID = comment.getCommentID();
+        long userID = comment.getUserID();
+        long workID = comment.getWorkID();
         comment res = commentservice.getCommentByID(commentID);
         if (res == null) return Result.error(404,"评论不存在");
         if (res.getUserID()!=userID) Result.error(403,"错误");

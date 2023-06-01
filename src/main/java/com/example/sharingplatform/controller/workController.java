@@ -1,5 +1,6 @@
 package com.example.sharingplatform.controller;
 
+import com.example.sharingplatform.entity.likeLink;
 import com.example.sharingplatform.entity.user;
 import com.example.sharingplatform.entity.work;
 import com.example.sharingplatform.entity.workResult;
@@ -30,10 +31,11 @@ public class workController {
     public Result testPost(@RequestBody String a) { return Result.success(500,a); }
 
     @PostMapping("/like")       //动态点赞
-    public Result likeWorkController(@RequestPart("userID") long userID,
-                                     @RequestPart("workID") long workID,
+    public Result likeWorkController(@RequestBody likeLink like,
                                      HttpServletRequest request)
     {
+        long userID = like.getUserID();
+        long workID = like.getWorkID();
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
         user userRes = userservice.getUserByID(userID);
@@ -44,7 +46,7 @@ public class workController {
         return Result.success(200,"成功");
     }
 
-    @DeleteMapping("/delete")       //删除动态
+    @PostMapping("/delete")       //删除动态
     public Result deleteWorkController(@RequestBody long workID,HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
@@ -54,11 +56,11 @@ public class workController {
     }
 
     @GetMapping("/information")     //获取动态详情
-    public Result getWorkDetailsController(@RequestParam long workID, HttpServletResponse response){
+    public Result<work> getWorkDetailsController(@RequestParam long workID, HttpServletResponse response){
         work res = workservice.getWorkByID(workID);
-        if (res==null) return Result.error(404,"动态不存在");
+        if (res==null) return Result.error(null,404,"动态不存在");
         workservice.sendPicture(res,response);
-        return Result.success(res,200,"成功");
+        return Result.success(res,200,"获取成功");
     }
 
     @PostMapping(path="/add",consumes = {"multipart/form-data"})        //增添动态

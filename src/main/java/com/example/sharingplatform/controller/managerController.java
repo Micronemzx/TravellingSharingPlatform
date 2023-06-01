@@ -40,38 +40,30 @@ public class managerController {
         }
         return Result.error(null,403,"失败");
     }
-
+    @GetMapping("/checkroot")
+    public Result checkRootController(@RequestParam String rootName,@RequestParam String rootPsd){
+        if (Objects.equals(rootName, "root") && Objects.equals(rootPsd, "rootpsd_3306"))
+            return Result.success(true,200,"认证成功");
+        return Result.error(false,500,"无权限");
+    }
     @PostMapping("/add")    //添加管理员
-    public Result addManagerController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
-                                             @RequestPart("newName") String newName,@RequestPart("newPsd") String newPsd)
+    public Result addManagerController(@RequestBody manager newManager)
     {
-        if (Objects.equals(rootName, "root") && Objects.equals(rootPsd, "rootpsd_3306"))
-        {
-            manager entity = new manager();
-            entity.setManagerName(newName);
-            entity.setManagerPsd(newPsd);
-            managerRep.save(entity);
+            managerRep.save(newManager);
             return Result.success(200,"成功");
-        }
-        return Result.error(403,"无权限");
     }
 
-    @DeleteMapping("/deletemanager")  //删除管理员
-    public Result deleteManagerController(@RequestPart("rootName") String rootName,@RequestPart("rootPsd") String rootPsd,
-                                             @RequestPart("deleteName") String name,@RequestPart("deletePsd") String psd)
+    @PostMapping("/deletemanager")  //删除管理员
+    public Result deleteManagerController(@RequestBody manager manager)
     {
-        if (Objects.equals(rootName, "root") && Objects.equals(rootPsd, "rootpsd_3306"))
-        {
-            manager entity = managerRep.findByManagerNameAndManagerPsd(name,psd);
-            if (entity == null) return Result.error(400,"失败，删除用户不存在");
-            managerRep.delete(entity);
-            return Result.success(200,"成功");
-        }
-        return Result.error(403,"无权限");
+        manager entity = managerRep.findByManagerNameAndManagerPsd(manager.getManagerName(), manager.getManagerPsd());
+        if (entity == null) return Result.error(400,"失败，删除用户不存在");
+        managerRep.delete(entity);
+        return Result.success(200,"成功");
     }
 
-    @DeleteMapping("/deleteUser")   //注销账号
-    public Result deleteUserController(@RequestPart long userID) {
+    @PostMapping("/deleteUser")   //注销账号
+    public Result deleteUserController(@RequestBody long userID) {
         user res = userservice.getUserByID(userID);
         if (res == null) return Result.error(404,"用户不存在");
         userservice.deleteUser(res);
