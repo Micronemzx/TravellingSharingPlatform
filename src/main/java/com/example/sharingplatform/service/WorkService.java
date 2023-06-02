@@ -1,13 +1,11 @@
 package com.example.sharingplatform.service;
 
 import com.example.sharingplatform.entity.likeLink;
-import com.example.sharingplatform.entity.user;
 import com.example.sharingplatform.entity.work;
+import com.example.sharingplatform.entity.workResult;
 import com.example.sharingplatform.utils.Result;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
@@ -38,4 +36,6 @@ public interface WorkService {
     List<String> getHotWorkList();
 
     List<String> getHotPlaceList();
+
+    workResult getIndexWork(int page);
 }

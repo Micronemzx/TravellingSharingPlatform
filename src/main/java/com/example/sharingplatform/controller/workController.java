@@ -124,4 +124,9 @@ public class workController {
     public Result<List<String>> getHotPlaceListController() {
         return Result.success(workservice.getHotPlaceList(),200,"成功");
     }
+
+    @GetMapping("/index")      //获取首页动态
+    public Result<workResult> getIndexController(int page){
+        return Result.success(workservice.getIndexWork(page),200,"成功");
+    }
 }

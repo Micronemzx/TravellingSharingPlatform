@@ -5,11 +5,9 @@ import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.repository.*;
 import com.example.sharingplatform.utils.Result;
 
-import org.hibernate.jdbc.Work;
 import org.springframework.boot.system.ApplicationHome;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -69,6 +67,18 @@ public class WorkServiceImpl implements WorkService {
         for (work i : res) { result.add(i.getTitle()); }
         return result;
     }
+
+    @Override
+    public workResult getIndexWork(int page) {
+        Sort sort = Sort.by(Sort.Direction.DESC,"workID");
+        PageRequest pr = PageRequest.of(page,10,sort);
+        List<work> res = workRep.findAll(pr).getContent();
+        workResult result = new workResult();
+        result.setWorkResult(res);
+        result.setResultNumber(res.size());
+        return result;
+    }
+
     @Override
     public work getWorkByID(long workID) {
         return workRep.findByWorkID(workID);
