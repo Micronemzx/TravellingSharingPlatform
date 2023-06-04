@@ -16,7 +16,6 @@ public class user {
     private String gender;
     private String phoneNumber;
     private Date birth;
-    private String photoPath;
     private int workNumber;
     private String token;
     private int login;
@@ -106,13 +105,6 @@ public class user {
         this.birth = birth;
     }
 
-    public String getPhotoPath() {
-        return photoPath;
-    }
-
-    public void setPhotoPath(String photoPath) {
-        this.photoPath = photoPath;
-    }
 
     public int getWorkNumber() {
         return workNumber;

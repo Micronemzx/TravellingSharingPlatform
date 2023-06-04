@@ -47,7 +47,9 @@ public class userController {
     }
 
     @GetMapping("/login")   //登录
-    public Result<user> loginController(@RequestParam("email") String email,@RequestParam("password") String password, HttpServletResponse response){
+    public Result<user> loginController(@RequestParam("email") String email,
+                                        @RequestParam("password") String password,
+                                        HttpServletResponse response){
         user user=userservice.ifExist(email);
         if(user==null){
             return Result.success(null,200,"用户不存在");
@@ -70,7 +72,6 @@ public class userController {
                     response.addCookie(cookie);
                     res.setToken(null);
                     res.setPassword(null);
-                    res.setAvatar(null);
                     return Result.success(res, 200, "successful");
                 }
             }
@@ -95,7 +96,7 @@ public class userController {
     {
         String email=email_password.getEmail();
         String password=email_password.getPassword();
-        //System.out.println(email_password.toString());
+        System.out.println(email+' '+password);
         return Result.success(200,userservice.resetpassword(email,password));
     }
 
@@ -139,17 +140,17 @@ public class userController {
     }
 
     @GetMapping("/search")  //搜索用户
-    public Result<userResult> searchUserController(@RequestParam String userName, HttpServletRequest request, HttpServletResponse response){
+    public Result<userResult> searchUserController(@RequestParam String userName, HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(null,401,"NeedLogin");
-        List<user> res = userservice.searchUser(userName,response);
+        List<user> res = userservice.searchUser(userName);
         userResult userresult = new userResult();
         userresult.setResultNumber(res.size());
         userresult.setUserResult(res);
         return Result.success(userresult,200,"成功");
     }
 
-    @GetMapping("getNotice")    //获取通知
+    @GetMapping("/getNotice")    //获取通知
     public Result<notificationResult> getNotificationController(@RequestParam long userID,HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(null,401,"NeedLogin");
@@ -158,5 +159,12 @@ public class userController {
         result.setResultNumber(res.size());
         result.setNotificationResult(res);
         return Result.success(result);
+    }
+
+    @GetMapping("/getAvatar")  //获取头像
+    public Result getPictureController(String path,HttpServletResponse response){
+        String res = userservice.sendPicture(path,response);
+        if (Objects.equals(res, "successful")) return Result.success(200,"成功");
+        else return Result.error(500,res);
     }
 }

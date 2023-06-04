@@ -131,6 +131,8 @@ public class UserServiceImpl implements UserService{
         Date now = new Date();
         Date pre = res.getLastUpdateTime();
         if ((now.getTime()-pre.getTime())/1000/60/5!=0) return Result.error(null,403,"验证码已经失效");
+        user.setPassword(null);
+        user.setToken(null);
         return Result.success(user,200,"验证成功");
     }
 
@@ -148,9 +150,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public user ifExist(String email){ return userRep.findByEmail(email); }
     @Override
-    public boolean ifBanned(user res) {
-        return res.getLogin() >= 0;
-    }
+    public boolean ifBanned(user res){ return res.getLogin() >= 0; }
     @Override
     public user getUserByID(long userID) { return userRep.findByUserID(userID); }
     @Override
@@ -187,7 +187,7 @@ public class UserServiceImpl implements UserService{
         File jarfile = home.getSource();
         String path = jarfile.getParentFile().toString()+"/uploads/";
         String userPathRoot = path + userID + "/";
-        String filepath = userPathRoot + userID + "." + file.getContentType();
+        String filepath = userPathRoot + userID + file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf("."));;
         File dest = new File(filepath);
 
         if (!dest.getParentFile().exists()) {
@@ -224,21 +224,20 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<user> searchUser(String userName, HttpServletResponse response)
+    public List<user> searchUser(String userName)
     {
         List<user> res = userRep.findByUserName("%"+userName+"%");
         for (user i:res)
         {
             i.setToken(null);
             i.setPassword(null);
-            downloadPictureForUser(i.getAvatar(),response);
-            File tmp = new File(i.getAvatar());
-            i.setAvatar(tmp.getName());
         }
         return res;
     }
-
-
+    @Override
+    public String sendPicture(String path,HttpServletResponse response){
+        return downloadPictureForUser(path,response);
+    }
     private String downloadPictureForUser(String downloadUrl,HttpServletResponse resp) {
         return downloadPicture(downloadUrl, resp);
     }

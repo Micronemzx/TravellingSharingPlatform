@@ -31,9 +31,11 @@ public interface UserService {
 
     void logout(user res);
 
-    List<user> searchUser(String userName, HttpServletResponse response);
+    List<user> searchUser(String userName);
     void banUser(user res);
     boolean ifBanned(user res);
 
     Result<user> verifyUser(user user,String email,String mailCode);
+
+    String sendPicture(String path, HttpServletResponse response);
 }

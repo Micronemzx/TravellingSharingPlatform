@@ -22,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static jdk.nashorn.internal.objects.NativeMath.min;
-
 @Service
 public class WorkServiceImpl implements WorkService {
     @Resource
@@ -94,11 +92,13 @@ public class WorkServiceImpl implements WorkService {
 
     @Override
     public Result savePhoto(long workID, long userID, int cnt, MultipartFile partFile) {
+        if (partFile.isEmpty()) return Result.error(500,"文件为空");
+        if (partFile.getOriginalFilename()==null) return  Result.error(500,"文件名为空");
         ApplicationHome home = new ApplicationHome(getClass());
         File jarfile = home.getSource();
         String path = jarfile.getParentFile().toString()+"/uploads/";
         String userPathRoot = path + userID + "/" + workID + "/";
-        String filepath = userPathRoot + userID + "_" + workID + "_" + cnt + "." + partFile.getContentType();
+        String filepath = userPathRoot + userID + "_" + workID + "_" + cnt + partFile.getOriginalFilename().substring(partFile.getOriginalFilename().lastIndexOf("."));
         File dest = new File(filepath);
 
         if (!dest.getParentFile().exists()) {
@@ -128,7 +128,9 @@ public class WorkServiceImpl implements WorkService {
         List<work> res = workRep.findByTitle(title);
         if (res.size()<=(page-1)*10) return null;
         List<work> result = new ArrayList<>();
-        for (int i=(page-1)*10;i<min(res.size()<page*10);++i)
+        int num = res.size();
+        if (page*10<num) num=page*10;
+        for (int i=(page-1)*10;i<num;++i)
             result.add(res.get(i));
         return result;
     }
@@ -147,18 +149,12 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public String sendPicture(work work,HttpServletResponse response) {
-        List<picture> res = picRep.findByWorkID(work.getWorkID());
-        StringBuilder result = new StringBuilder();
-        int cnt = 0;
-        for (picture i : res)
-        {
-            cnt++;
-            String ans = downloadPicture(i.getSavePath(),response);
-            result.append("picture ").append(cnt).append(":").append(ans).append(" ");
-        }
+    public String sendPicture(long workID,int num,HttpServletResponse response) {
+        List<picture> res = picRep.findByWorkID(workID);
+        if (res.size()<num) return "失败,图片不存在";
+        picture entity = res.get(num-1);
+        return downloadPicture(entity.getSavePath(),response);
         //return "successful";
-        return result.toString();
     }
 
     static String downloadPicture(String downloadUrl, HttpServletResponse resp) {

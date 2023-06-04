@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/work")
@@ -56,10 +57,9 @@ public class workController {
     }
 
     @GetMapping("/information")     //获取动态详情
-    public Result<work> getWorkDetailsController(@RequestParam long workID, HttpServletResponse response){
+    public Result<work> getWorkDetailsController(@RequestParam long workID){
         work res = workservice.getWorkByID(workID);
         if (res==null) return Result.error(null,404,"动态不存在");
-        workservice.sendPicture(res,response);
         return Result.success(res,200,"获取成功");
     }
 
@@ -74,7 +74,6 @@ public class workController {
             if (!workservice.checkPicture(partFile)) return Result.error(403,"文件类型不支持");
         }
         workInfo.setCreateTime(new Date());
-        workservice.saveWork(workInfo);
         int cnt=0;
         for (MultipartFile partFile : file)
         {
@@ -87,18 +86,24 @@ public class workController {
                     return res;
             }
         }
+        workInfo.setPictureNumber(cnt);
+        workservice.saveWork(workInfo);
         return Result.success(200,"成功");
     }
 
     @GetMapping("/search")          //搜索动态标题
     public Result<workResult> searchWorkController(@RequestParam("title") String title,
                                                    @RequestParam("page") int page,
-                                                   HttpServletRequest request,
-                                                   HttpServletResponse response){
+                                                   HttpServletRequest request){
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(null,401,"NeedLogin");
         List<work> res = workservice.searchWork(title,page);
-        for (work i : res) workservice.sendPicture(i,response);
+        if (res==null) {
+            workResult result = new workResult();
+            result.setResultNumber(0);
+            result.setWorkResult(null);
+            return Result.success(result,200,"未查询到任何信息");
+        }
         workResult result = new workResult();
         result.setResultNumber(res.size());
         result.setWorkResult(res);
@@ -126,7 +131,14 @@ public class workController {
     }
 
     @GetMapping("/index")      //获取首页动态
-    public Result<workResult> getIndexController(int page){
+    public Result<workResult> getIndexController(@RequestParam int page){
         return Result.success(workservice.getIndexWork(page),200,"成功");
+    }
+
+    @GetMapping("/getPicture")  //获取图片
+    public Result getPictureController(@RequestParam long workID,@RequestParam int num,HttpServletResponse response){
+        String res = workservice.sendPicture(workID,num,response);
+        if (Objects.equals(res, "successful")) return Result.success(200,"成功");
+        else return Result.error(500,res);
     }
 }

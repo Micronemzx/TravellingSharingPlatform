@@ -20,8 +20,6 @@ public interface WorkService {
 
     void deleteWork(work res);
 
-    String sendPicture(work res, HttpServletResponse response);
-
     boolean checkPicture(MultipartFile file);
 
     void saveWork(work work);
@@ -38,4 +36,6 @@ public interface WorkService {
     List<String> getHotPlaceList();
 
     workResult getIndexWork(int page);
+
+    String sendPicture(long workID,int num,HttpServletResponse response);
 }
