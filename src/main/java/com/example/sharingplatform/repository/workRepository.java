@@ -12,6 +12,7 @@ public interface workRepository extends JpaRepository<work,Long> {
     @Transactional(rollbackFor = Exception.class)   //删除发生错误会回滚数据
     void deleteByUserID(long userID);
     work findByWorkID(long workID);
-    List<work> findByTitle(String title);
+
+    List<work> findByTitleLike(String title);
    // List<work> findAll(PageRequest pageable);
 }

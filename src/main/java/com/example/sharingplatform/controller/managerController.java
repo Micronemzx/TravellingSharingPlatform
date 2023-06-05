@@ -10,6 +10,7 @@ import com.example.sharingplatform.utils.Result;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -108,16 +109,23 @@ public class managerController {
         return Result.success(200,"成功");
     }
     @GetMapping("/report")  //获取举报列表
-    public Result<reportResult> getWorkReport()
+    public Result<complaintResult> getWorkReport()
     {
         List<complaint> res = reportRep.findByStatusOrderByWorkIDAsc(0);
         if (res.size()==0) return Result.success(null,200,"列表为空");
-        reportResult result = new reportResult();
-        result.setResultNumber(res.size());
-        List<complaint> dist = new ArrayList<>();
-        dist.add(res.get(0));
-        for (int i=1;i<res.size();++i) if (res.get(i).getWorkID()!=res.get(i-1).getWorkID()) dist.add(res.get(i));
-        result.setReportResult(dist);
-        return Result.success(result,200,"成功");
+        System.out.println(res.size());
+        complaintResult ans = new complaintResult();
+        ans.setResultNumber(res.size());
+        ans.setReportResult(res);
+        List<complaint> tmp = new ArrayList<>();
+        try {
+            tmp.add(res.get(0));
+            for (int i = 1; i < res.size(); ++i)
+                if (res.get(i).getWorkID() != res.get(i - 1).getWorkID()) tmp.add(res.get(i));
+            ans.setReportResult(tmp);
+        } finally {
+            System.out.println(tmp.size());
+        }
+        return Result.success(ans,200,"成功");
     }
 }

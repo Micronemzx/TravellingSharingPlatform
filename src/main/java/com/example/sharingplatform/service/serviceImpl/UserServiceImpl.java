@@ -226,7 +226,7 @@ public class UserServiceImpl implements UserService{
     @Override
     public List<user> searchUser(String userName)
     {
-        List<user> res = userRep.findByUserName("%"+userName+"%");
+        List<user> res = userRep.findByUserNameLike("%"+userName+"%");
         for (user i:res)
         {
             i.setToken(null);

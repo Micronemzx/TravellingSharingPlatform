@@ -1,9 +1,6 @@
 package com.example.sharingplatform.controller;
 
-import com.example.sharingplatform.entity.likeLink;
-import com.example.sharingplatform.entity.user;
-import com.example.sharingplatform.entity.work;
-import com.example.sharingplatform.entity.workResult;
+import com.example.sharingplatform.entity.*;
 import com.example.sharingplatform.service.UserService;
 import com.example.sharingplatform.service.WorkService;
 import com.example.sharingplatform.utils.Result;
@@ -111,12 +108,11 @@ public class workController {
     }
 
     @PostMapping("/complaint")      //举报动态
-    public Result complaintWorkController(@RequestPart("workID") long workID,
-                                          @RequestPart("userID") long userID,
+    public Result complaintWorkController(@RequestBody complaint complaint,
                                           HttpServletRequest request) {
         boolean isLogin=userservice.checkToken(request);
         if(!isLogin) return Result.error(401,"NeedLogin");
-        workservice.complaintWork(workID,userID);
+        workservice.complaintWork(complaint.getWorkID(),complaint.getUserID());
         return Result.success(200,"成功");
     }
 

@@ -125,7 +125,7 @@ public class WorkServiceImpl implements WorkService {
     @Override
     public List<work> searchWork(String title,int page)
     {
-        List<work> res = workRep.findByTitle(title);
+        List<work> res = workRep.findByTitleLike("%"+title+"%");
         if (res.size()<=(page-1)*10) return null;
         List<work> result = new ArrayList<>();
         int num = res.size();
