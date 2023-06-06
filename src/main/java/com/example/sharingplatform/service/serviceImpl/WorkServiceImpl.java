@@ -34,7 +34,9 @@ public class WorkServiceImpl implements WorkService {
     likeRepository likeRep;
     @Resource
     placeRepository placeRep;
-
+    public void addPlaceHot(work work){
+        CommentServiceImpl.addPlaceHot(work, placeRep);
+    }
     @Override
     public void like(work work,long userID) {
         work.setLikeNumber(work.getLikeNumber()+1);
@@ -44,6 +46,7 @@ public class WorkServiceImpl implements WorkService {
         relation.setWorkID(work.getWorkID());
         relation.setUserID(userID);
         likeRep.save(relation);
+       addPlaceHot(work);
     }
     @Override
     public likeLink getLikeLink(long workID, long userID) { return likeRep.findByWorkIDAndUserID(workID,userID); }
@@ -51,18 +54,18 @@ public class WorkServiceImpl implements WorkService {
     public List<String> getHotWorkList() {
         Sort sort = Sort.by(Sort.Direction.DESC,"hotPoint");
         PageRequest pr = PageRequest.of(0, 10, sort);
-        List<place> res = placeRep.findAll(pr).getContent();
+        List<work> res = workRep.findAll(pr).getContent();
         List<String> result = new ArrayList<>();
-        for (place i : res) { result.add(i.getName()); }
+        for (work i : res) { result.add(i.getTitle()); }
         return result;
     }
     @Override
     public List<String> getHotPlaceList() {
         Sort sort = Sort.by(Sort.Direction.DESC,"hotPoint");
         PageRequest pr = PageRequest.of(0, 10, sort);
-        List<work> res = workRep.findAll(pr).getContent();
+        List<place> res = placeRep.findAll(pr).getContent();
         List<String> result = new ArrayList<>();
-        for (work i : res) { result.add(i.getTitle()); }
+        for (place i : res) { result.add(i.getName()); }
         return result;
     }
 
@@ -88,7 +91,7 @@ public class WorkServiceImpl implements WorkService {
     private static final List<String> SUPPORTED_TYPES = Arrays.asList("image/jpeg", "image/png","image/svg","image/bmp","image/svg");
 
     public boolean checkPicture(MultipartFile file) { return SUPPORTED_TYPES.contains(file.getContentType());  }
-    public void saveWork(work workInfo) { workRep.save(workInfo); }
+    public void saveWork(work workInfo) { workRep.save(workInfo); addPlaceHot(workInfo); }
 
     @Override
     public Result savePhoto(long workID, long userID, int cnt, MultipartFile partFile) {

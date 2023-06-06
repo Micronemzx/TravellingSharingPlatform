@@ -71,6 +71,8 @@ public class workController {
             if (!workservice.checkPicture(partFile)) return Result.error(403,"文件类型不支持");
         }
         workInfo.setCreateTime(new Date());
+        workInfo.setPictureNumber(file.length);
+        workservice.saveWork(workInfo);
         int cnt=0;
         for (MultipartFile partFile : file)
         {
@@ -83,8 +85,6 @@ public class workController {
                     return res;
             }
         }
-        workInfo.setPictureNumber(cnt);
-        workservice.saveWork(workInfo);
         return Result.success(200,"成功");
     }
 

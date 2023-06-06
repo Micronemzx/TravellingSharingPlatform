@@ -1,8 +1,10 @@
 package com.example.sharingplatform.service.serviceImpl;
 
 import com.example.sharingplatform.entity.comment;
+import com.example.sharingplatform.entity.place;
 import com.example.sharingplatform.entity.work;
 import com.example.sharingplatform.repository.commentRepository;
+import com.example.sharingplatform.repository.placeRepository;
 import com.example.sharingplatform.repository.workRepository;
 import com.example.sharingplatform.service.CommentService;
 import org.springframework.stereotype.Repository;
@@ -19,6 +21,8 @@ public class CommentServiceImpl implements CommentService {
     commentRepository commentRep;
     @Resource
     workRepository workRep;
+    @Resource
+    placeRepository placeRep;
 
     @Override
     public void add(long workID, long userID, String commentContent) {
@@ -33,6 +37,14 @@ public class CommentServiceImpl implements CommentService {
         res.setCommentNumber(res.getCommentNumber()+1);
         res.setHotPoint(res.getHotPoint()+1);
         workRep.save(res);
+        addPlaceHot(res, placeRep);
+    }
+
+    public static void addPlaceHot(work res, placeRepository placeRep) {
+        place place = placeRep.findByName(res.getPlace());
+        if (place==null) { place = new place(); place.setName(res.getPlace()); place.setHotPoint(0); }
+        place.setHotPoint(place.getHotPoint()+1);
+        placeRep.save(place);
     }
 
     @Override
