@@ -84,11 +84,6 @@ public class userController {
         user res = userservice.ifExist(email);
         if (res == null) return Result.error(null,404,"不存在该用户");
         return userservice.verifyUser(res,email,mailCode);
-        /*if (Objects.equals(mail.getMailCode(), mailCode))
-        {
-            return Result.success(res,200,"成功");
-        }
-        return Result.success(res,200,"验证码错误");*/
     }
 
     @PostMapping("/resetpassword")  //重置密码
