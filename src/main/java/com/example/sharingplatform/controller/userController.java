@@ -157,9 +157,12 @@ public class userController {
     }
 
     @GetMapping("/getAvatar")  //获取头像
-    public Result getPictureController(String path,HttpServletResponse response){
-        String res = userservice.sendPicture(path,response);
-        if (Objects.equals(res, "successful")) return Result.success(200,"成功");
-        else return Result.error(500,res);
+    public Result getPictureController(@RequestParam long userID,HttpServletResponse response){
+        user res = userservice.getUserByID(userID);
+        if (res==null||res.getAvatar()==null) return Result.error(404,"不存在");
+
+        String ans = userservice.sendPicture(res.getAvatar(),response);
+        if (Objects.equals(ans, "successful")) return Result.success(200,"成功");
+        else return Result.error(500,ans);
     }
 }
